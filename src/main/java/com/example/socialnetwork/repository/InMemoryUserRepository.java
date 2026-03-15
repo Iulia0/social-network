@@ -1,11 +1,13 @@
 package com.example.socialnetwork.repository;
 
 import com.example.socialnetwork.entity.User;
+import org.springframework.stereotype.Repository;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+@Repository
 public class InMemoryUserRepository implements UserRepository {
 
     private final Map<String, User> userStore = new HashMap<>();
