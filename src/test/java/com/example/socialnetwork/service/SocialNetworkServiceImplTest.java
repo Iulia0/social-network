@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class SocialNetworkServiceImplTest {
-    
+
     private InMemoryPostRepository postRepository;
     private InMemoryUserRepository userRepository;
     private SocialNetworkService socialNetworkService;
@@ -72,25 +72,28 @@ class SocialNetworkServiceImplTest {
         }
 
         @Test
-        void shouldReturnPostsWithRelativeTimestamp() {
+        void shouldReturnPostsWithRelativeTimestamp() throws InterruptedException {
             socialNetworkService.post("Alice", "I love the weather today");
+            Thread.sleep(1000);
 
             var timeline = socialNetworkService.read("Alice");
 
-            assertThat(timeline.get(0)).isEqualTo("I love the weather today (5 minutes ago)");
+            assertThat(timeline.get(0)).isEqualTo("I love the weather today (1 second ago)");
         }
 
         @Test
-        void shouldReturnPostsInReverseChronologicalOrder() {
+        void shouldReturnPostsInReverseChronologicalOrder() throws InterruptedException {
             socialNetworkService.post("Bob", "Damn! We lost!");
+            Thread.sleep(1000);
             socialNetworkService.post("Bob", "Good game though.");
+            Thread.sleep(1000);
 
             var timeline = socialNetworkService.read("Bob");
 
             assertThat(timeline.get(0)).contains("Good game though.");
-            assertThat(timeline.get(0)).contains("1 minute ago");
+            assertThat(timeline.get(0)).contains("1 second ago");
             assertThat(timeline.get(1)).contains("Damn! We lost!");
-            assertThat(timeline.get(1)).contains("2 minutes ago");
+            assertThat(timeline.get(1)).contains("2 seconds ago");
         }
     }
 
@@ -128,8 +131,9 @@ class SocialNetworkServiceImplTest {
         }
 
         @Test
-        void shouldIncludeFollowedUserPostsOnWall() {
+        void shouldIncludeFollowedUserPostsOnWall() throws InterruptedException {
             socialNetworkService.post("Alice", "I love the weather today");
+            Thread.sleep(10);
             socialNetworkService.post("Charlie", "I'm in New York today!");
             socialNetworkService.follow("Charlie", "Alice");
 
@@ -141,13 +145,13 @@ class SocialNetworkServiceImplTest {
         }
 
         @Test
-        void shouldAggregateAllFollowedUsersOnWall() {
+        void shouldAggregateAllFollowedUsersOnWall() throws InterruptedException {
             socialNetworkService.post("Alice", "I love the weather today");
+            Thread.sleep(10);
             socialNetworkService.post("Bob", "Damn!");
-
+            Thread.sleep(10);
             socialNetworkService.post("Bob", "Good");
-
-
+            Thread.sleep(10);
             socialNetworkService.post("Charlie", "I'm in New York today! Anyone want to have a coffee?");
             socialNetworkService.follow("Charlie", "Alice");
             socialNetworkService.follow("Charlie", "Bob");
@@ -156,8 +160,8 @@ class SocialNetworkServiceImplTest {
 
             assertThat(wall).hasSize(4);
             assertThat(wall.get(0)).startsWith("Charlie -");
-            assertThat(wall.get(1)).startsWith("Bob -").contains("Good game though.");
-            assertThat(wall.get(2)).startsWith("Bob -").contains("Damn! We lost!");
+            assertThat(wall.get(1)).startsWith("Bob -").contains("Good");
+            assertThat(wall.get(2)).startsWith("Bob -").contains("Damn!");
             assertThat(wall.get(3)).startsWith("Alice -");
         }
 
@@ -187,23 +191,26 @@ class SocialNetworkServiceImplTest {
     class AcceptanceScenario {
 
         @Test
-        void shouldReplicateFullSpecificationScenario() {
+        void shouldReplicateFullSpecificationScenario() throws InterruptedException {
             socialNetworkService.post("Alice", "I love the weather today");
+            Thread.sleep(1000);
             socialNetworkService.post("Bob", "Damn!");
+            Thread.sleep(1000);
             socialNetworkService.post("Bob", "Good");
+            Thread.sleep(1000);
             socialNetworkService.post("Charlie", "I'm in New York today!");
             socialNetworkService.follow("Charlie", "Alice");
             socialNetworkService.follow("Charlie", "Bob");
 
             var alicesTimeline = socialNetworkService.read("Alice");
             assertThat(alicesTimeline).hasSize(1);
-            assertThat(alicesTimeline.get(0)).isEqualTo("I love the weather today (5 minutes ago)");
+            assertThat(alicesTimeline.get(0)).isEqualTo("I love the weather today (3 seconds ago)");
 
 
             var bobsTimeline = socialNetworkService.read("Bob");
             assertThat(bobsTimeline).hasSize(2);
-            assertThat(bobsTimeline.get(0)).contains("Good").contains("1 minute ago");
-            assertThat(bobsTimeline.get(1)).contains("Damn!").contains("2 minutes ago");
+            assertThat(bobsTimeline.get(0)).contains("Good").contains("1 second ago");
+            assertThat(bobsTimeline.get(1)).contains("Damn!").contains("2 seconds ago");
 
             var charlieWall = socialNetworkService.getWall("Charlie");
             assertThat(charlieWall).hasSize(4);
