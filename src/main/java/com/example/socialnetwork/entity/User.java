@@ -13,17 +13,17 @@ public class User {
     @NotBlank
     private final String name;
 
-    private final Set<String> following = new LinkedHashSet<>();
+    private final List<String> following = new ArrayList<>();
 
     public void follow(@NotBlank String otherUser) {
-        if (otherUser.equals(name)) {
+        if (otherUser.equals(name))
             throw new IllegalArgumentException("User cannot follow themselves");
-        }
+
         following.add(otherUser);
     }
 
-    public Set<String> getFollowing() {
-        return Collections.unmodifiableSet(following);
+    public List<String> getFollowing() {
+        return List.copyOf(following);
     }
 
     public boolean isFollowing(String otherUser) {
