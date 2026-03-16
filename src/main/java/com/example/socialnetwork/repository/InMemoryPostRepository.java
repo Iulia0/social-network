@@ -10,6 +10,7 @@ import java.util.List;
 @Repository
 public class InMemoryPostRepository implements PostRepository {
 
+    // no implementation done for handling of uniqueness of author
     private final List<Post> postStore = new ArrayList<>();
 
     @Override
